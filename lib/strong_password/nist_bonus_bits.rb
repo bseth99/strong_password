@@ -31,7 +31,7 @@ module StrongPassword
         elsif numeric && !other && !upper && !lower
           -6
        else
-          -12
+          0
       end
 
       if !space
