@@ -16,25 +16,25 @@ module StrongPassword
       "014725836914702583697894561230258/369*+-*/",
       "abcdefghijklmnopqrstuvwxyz"
     ]
-    
+
     attr_reader :base_password
-    
+
     def initialize(password)
       @base_password = password.downcase
     end
-    
-    def is_strong?(min_entropy: 18)
+
+    def is_strong?(min_entropy = 18)
       adjusted_entropy(entropy_threshhold: min_entropy) >= min_entropy
     end
-    
-    def is_weak?(min_entropy: 18)
-      !is_strong?(min_entropy: min_entropy)
+
+    def is_weak?(min_entropy = 18)
+      !is_strong?(min_entropy)
     end
-    
+
     # Returns the minimum entropy for the password's qwerty locality
     # adjustments.  If a threshhold is specified we will bail
     # early to avoid unnecessary processing.
-    def adjusted_entropy(entropy_threshhold: 0)
+    def adjusted_entropy(entropy_threshhold = 0)
       revpassword = base_password.reverse
       min_entropy = [EntropyCalculator.calculate(base_password), EntropyCalculator.calculate(revpassword)].min
       QWERTY_STRINGS.each do |qwertystr|
@@ -53,9 +53,9 @@ module StrongPassword
       end
       min_entropy
     end
-  
+
   private
-  
+
     def mask_qwerty_strings(password, qwerty_string)
       masked_password = password
       z = 6
