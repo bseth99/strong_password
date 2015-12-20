@@ -14,12 +14,15 @@ module StrongPassword
       @@bonus_bits_for_password = {}
     end
 
-    def self.calculate_bonus_bits_for(password)
-      upper   = !!(password =~ /[[:upper:]]/)
-      lower   = !!(password =~ /[[:lower:]]/)
-      numeric = !!(password =~ /[[:digit:]]/)
-      other   = !!(password =~ /[^a-zA-Z0-9 ]/)
-      space   = !!(password =~ / /)
+    def self.calculate_bonus_bits_for( password )
+      # Throw away first and last characters
+      pwtest = password.clone.slice( 1..-2 )
+
+      upper   = !!(pwtest =~ /[[:upper:]]/)
+      lower   = !!(pwtest =~ /[[:lower:]]/)
+      numeric = !!(pwtest =~ /[[:digit:]]/)
+      other   = !!(pwtest =~ /[^a-zA-Z0-9 ]/)
+      space   = !!(pwtest =~ / /)
 
       # I had this condensed to nested ternaries but that shit was ugly
       bonus_bits = if upper && lower && other && numeric
@@ -38,9 +41,9 @@ module StrongPassword
         bonus_bits = bonus_bits - 2
       elsif password.split(/\s+/).length > 3
         bonus_bits = bonus_bits + 1
-     end
+      end
 
-     bonus_bits
-     end
+      bonus_bits
+    end
   end
 end
