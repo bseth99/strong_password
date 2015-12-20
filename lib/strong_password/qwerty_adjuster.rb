@@ -23,30 +23,22 @@ module StrongPassword
       @base_password = password.downcase
     end
 
-    def is_strong?(min_entropy = 18)
-      adjusted_entropy(entropy_threshhold: min_entropy) >= min_entropy
-    end
-
-    def is_weak?(min_entropy = 18)
-      !is_strong?(min_entropy)
-    end
-
     # Returns the minimum entropy for the password's qwerty locality
     # adjustments.  If a threshhold is specified we will bail
     # early to avoid unnecessary processing.
     def adjusted_entropy(entropy_threshhold = 0)
       revpassword = base_password.reverse
-      min_entropy = [EntropyCalculator.calculate(base_password), EntropyCalculator.calculate(revpassword)].min
+      min_entropy = [EntropyCalculator.calculate( base_password, :nist_bonus => false ), EntropyCalculator.calculate( revpassword, :nist_bonus => false )].min
       QWERTY_STRINGS.each do |qwertystr|
-        qpassword = mask_qwerty_strings(base_password, qwertystr)
-        qrevpassword = mask_qwerty_strings(revpassword, qwertystr)
+        qpassword = mask_qwerty_strings( base_password, qwertystr )
+        qrevpassword = mask_qwerty_strings( revpassword, qwertystr )
         if qpassword != base_password
-          numbits = EntropyCalculator.calculate(qpassword)
+          numbits = EntropyCalculator.calculate( qpassword, :nist_bonus => false )
           min_entropy = [min_entropy, numbits].min
           return min_entropy if min_entropy < entropy_threshhold
         end
         if qrevpassword != revpassword
-          numbits = EntropyCalculator.calculate(qrevpassword)
+          numbits = EntropyCalculator.calculate( qrevpassword, :nist_bonus => false )
           min_entropy = [min_entropy, numbits].min
           return min_entropy if min_entropy < entropy_threshhold
         end

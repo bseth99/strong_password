@@ -973,27 +973,18 @@ module StrongPassword
       @base_password = password.downcase
     end
 
-    def is_strong?(min_entropy = 18, min_word_length = 4, extra_dictionary_words = [])
-      adjusted_entropy(min_entropy,
-                       min_word_length,
-                       extra_dictionary_words) >= min_entropy
-    end
-
-    def is_weak?(min_entropy = 18, min_word_length = 4, extra_dictionary_words = [])
-      !is_strong?(min_entropy, min_word_length, extra_dictionary_words)
-    end
-
     # Returns the minimum entropy for the passwords dictionary adjustments.
     # If a threshhold is specified we will bail early to avoid unnecessary
     # processing.
     # Note that we only check for the first matching word up to the threshhold if set.
     # Subsequent matching words are not deductd.
-    def adjusted_entropy(min_word_length = 4, extra_dictionary_words = [], entropy_threshhold = -1)
-      dictionary_words = Regexp.union( ( extra_dictionary_words + COMMON_PASSWORDS ).compact.reject{ |i| i.length < min_word_length } )
-      min_entropy = EntropyCalculator.calculate(base_password)
+    def adjusted_entropy( opts={} )
+
+      dictionary_words = Regexp.union( ( ( opts[:extra_dictionary_words] || [] ) + COMMON_PASSWORDS ).compact.reject{ |i| i.length < ( opts[:min_word_length] || 4 ) } )
+      min_entropy = EntropyCalculator.calculate( base_password, :nist_bonus => false )
       # Process the passwords, while looking for possible matching words in the dictionary.
       PasswordVariants.all_variants(base_password).inject( min_entropy ) do |min_entropy, variant|
-        [ min_entropy, EntropyCalculator.calculate( variant.sub( dictionary_words, '*' ) ) ].min
+        [ min_entropy, EntropyCalculator.calculate( variant.sub( dictionary_words, '*' ), :nist_bonus => false ) ].min
       end
     end
   end

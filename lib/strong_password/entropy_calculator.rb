@@ -1,17 +1,24 @@
 module StrongPassword
-  module EntropyCalculator    
+  module EntropyCalculator
     # Calculates NIST entropy for a password.
-    def self.calculate(password, repeats_weakened = true)
-      if repeats_weakened
-        bits_with_repeats_weakened(password)
+    def self.calculate( password, opts={} )
+
+      repeats_weakened = opts[:repeats_weakened].nil? ? true : opts[:repeats_weakened]
+      nist_bonus = opts[:nist_bonus].nil? ? true : opts[:nist_bonus]
+
+      bits = if repeats_weakened
+        bits_with_repeats_weakened( password, nist_bonus )
       else
-        bits(password)
+        bits( password, nist_bonus )
       end
+
+      #puts "#{password}, #{bits}"
+      bits
     end
-    
+
     # The basic NIST entropy calculation is based solely
     # on the length of the password in question.
-    def self.bits(password)
+    def self.bits( password, nist_bonus )
       length = password.length
       bits = if length > 20
         4 + (7 * 2) + (12 * 1.5) + length - 20
@@ -22,23 +29,33 @@ module StrongPassword
       else
         (length == 1 ? 4 : 0)
       end
-      bits + NistBonusBits.bonus_bits(password)
+
+      if nist_bonus
+         bits + NistBonusBits.bonus_bits( password )
+      else
+         bits
+      end
     end
-    
+
     # A modified version of the basic entropy calculation
     # which lowers the amount of entropy gained for each
     # repeated character in the password
-    def self.bits_with_repeats_weakened(password)
+    def self.bits_with_repeats_weakened( password, nist_bonus )
       resolver = EntropyResolver.new
       bits = password.chars.each.with_index.inject(0) do |result, (char, index)|
         char_value = resolver.entropy_for(char)
         result += bit_value_at_position(index, char_value)
       end
-      bits + NistBonusBits.bonus_bits(password)
+
+      if nist_bonus
+         bits + NistBonusBits.bonus_bits( password )
+      else
+         bits
+      end
     end
-  
+
   private
-    
+
     def self.bit_value_at_position(position, base = 1)
       if position > 19
         return base
@@ -50,17 +67,17 @@ module StrongPassword
         return 4
       end
     end
-  
+
     class EntropyResolver
       BASE_VALUE = 1
       REPEAT_WEAKENING_FACTOR = 0.75
-      
+
       attr_reader :char_multiplier
-      
+
       def initialize
         @char_multiplier = {}
       end
-      
+
       # Returns the current entropy value for a character and weakens the entropy
       # for future calls for the same character.
       def entropy_for(char)

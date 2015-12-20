@@ -31,7 +31,7 @@ module StrongPassword
         elsif numeric && !other && !upper && !lower
           -6
        else
-          0
+          -12
       end
 
       if !space
@@ -39,6 +39,7 @@ module StrongPassword
       elsif password.split(/\s+/).length > 3
         bonus_bits = bonus_bits + 1
      end
+
      bonus_bits
      end
   end
