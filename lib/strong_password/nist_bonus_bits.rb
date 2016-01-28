@@ -16,7 +16,7 @@ module StrongPassword
 
     def self.calculate_bonus_bits_for( password )
       # Throw away first and last characters
-      pwtest = password.clone.slice( 1..-2 )
+      pwtest = password.clone #.slice( 1..-2 )
 
       upper   = !!(pwtest =~ /[[:upper:]]/)
       lower   = !!(pwtest =~ /[[:lower:]]/)
